@@ -146,10 +146,15 @@ aws ec2 authorize-security-group-ingress \
 
 echo "Fetching latest Amazon Linux AMI..."
 
+echo "Fetching Amazon Linux 2023 AMI..."
+
 AMI_ID=$(aws ec2 describe-images \
   --owners amazon \
-  --filters "Name=name,Values=amzn2-ami-hvm-*-x86_64-gp2" \
-  --query 'Images | sort_by(@,&CreationDate)[-1].ImageId' \
+  --filters \
+    "Name=name,Values=al2023-ami-2023.10.20260302.1-kernel-6.1-x86_64" \
+    "Name=architecture,Values=x86_64" \
+    "Name=virtualization-type,Values=hvm" \
+  --query 'Images[0].ImageId' \
   --output text)
 
 echo "AMI: $AMI_ID"
