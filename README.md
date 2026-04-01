@@ -92,14 +92,35 @@ By experiencing failures directly, I aim to build a deeper understanding of syst
 
 ## Repository Structure
 
-(You fill this based on your folders)
-
-Example:
-
-* `/terraform` → Infrastructure provisioning
-* `/ansible` → Configuration management
-* `/scripts` → Bash automation
-* `/app` → Application code
+.
+├── ansible/              # Configuration management (server setup)
+│   ├── inventory/
+│   ├── playbooks/
+│   └── ansible.cfg
+│
+├── terraform/            # Infrastructure provisioning (AWS resources)
+│   ├── main.tf
+│   ├── variables.tf
+│   ├── outputs.tf
+│
+├── scripts/              # Bash automation (pre-tooling stage)
+│   ├── provision.sh
+│   ├── configure-server.sh
+│   ├── deploy.sh
+│   ├── cleanup.sh
+│   └── ...
+│
+├── systemd/              # Service management configuration
+│
+├── views/                # Application frontend (EJS templates)
+│
+├── docs/                 # Supporting documentation & guides
+│
+├── architecture/         # System design diagrams
+│
+├── server.js             # Application entry point
+├── package.json
+└── README.md
 
 ---
 
