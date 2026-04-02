@@ -34,9 +34,7 @@ jobs:
             fi
 
             # 4️⃣ Clone repo if missing
-            if [ ! -d "/home/ec2-user/systems-evolution-lab/.git" ]; then
-                git clone https://github.com/Kun13kush/systems-evolution-lab.git
-            fi
+            git clone https://github.com/Kun13kush/systems-evolution-lab.git
 
             # 5️⃣ Pull latest changes
             cd /home/ec2-user/systems-evolution-lab
