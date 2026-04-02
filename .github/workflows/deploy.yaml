@@ -40,7 +40,7 @@ jobs:
             git reset --hard origin/main
 
             # Install dependencies from the correct subdirectory
-            cd /home/ec2-user/systems-evolution-lab/app
+            cd /home/ec2-user/systems-evolution-lab
             npm install --omit=dev
 
             # Create systemd service if missing
