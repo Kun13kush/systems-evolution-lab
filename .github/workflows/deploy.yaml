@@ -34,7 +34,7 @@ jobs:
             fi
 
             # Navigate to or clone repo
-            if [ ! -d "/home/ec2-user/systems-evolution-lab/.git" ]; then
+            if [ ! -d "/home/ec2-user/systems-evolution-lab" ]; then
               git clone https://github.com/Kun13kush/systems-evolution-lab.git /home/ec2-user/systems-evolution-lab
             fi
             cd /home/ec2-user/systems-evolution-lab
