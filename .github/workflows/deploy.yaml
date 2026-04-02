@@ -46,7 +46,7 @@ jobs:
             # 6️⃣ Install Node dependencies
             npm install
 
-            # 7️⃣ Create/update systemd service
+            # 7️⃣ Setup systemd service if missing
             SERVICE_FILE="/etc/systemd/system/notes-app.service"
             if [ ! -f "$SERVICE_FILE" ]; then
               sudo tee $SERVICE_FILE > /dev/null <<EOF
@@ -67,149 +67,7 @@ WantedBy=multi-user.target
 EOF
             fi
 
-            # 8️⃣ Reload systemd and restart service
-            sudo systemctl daemon-reload
-            sudo systemctl enable notes-app
-            sudo systemctl restart notes-app
-            sudo systemctl status notes-app --no-pagername: Deploy to EC2
-on:
-  push:
-    branches:
-      - main
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            set -e
-
-            # Update system packages
-            sudo yum update -y
-
-            # Install Node.js if not installed
-            if ! command -v node > /dev/null; then
-              curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
-              sudo yum install -y nodejs
-            fi
-
-            # Install git if not installed
-            if ! command -v git > /dev/null; then
-              sudo yum install -y git
-            fi
-
-            # Clone or update repo
-            if [ ! -d "/home/ec2-user/systems-evolution-lab/.git" ]; then
-              git clone https://github.com/Kun13kush/systems-evolution-lab.git /home/ec2-user/systems-evolution-lab
-            fi
-
-            cd /home/ec2-user/systems-evolution-lab
-            git fetch --all
-            git reset --hard origin/main
-
-            # Install dependencies from the correct subdirectory
-            cd /home/ec2-user/systems-evolution-lab
-            npm install --omit=dev
-
-            # Create systemd service if missing
-            SERVICE_FILE="/etc/systemd/system/notes-app.service"
-            if [ ! -f "$SERVICE_FILE" ]; then
-              sudo tee $SERVICE_FILE > /dev/null <<EOF
-[Unit]
-Description=Node.js Notes App
-After=network.target
-
-[Service]
-Type=simple
-User=ec2-user
-WorkingDirectory=/home/ec2-user/systems-evolution-lab/app
-ExecStart=/usr/bin/node /home/ec2-user/systems-evolution-lab/app/server.js
-Restart=always
-Environment=NODE_ENV=production
-Environment=PORT=3000
-
-[Install]
-WantedBy=multi-user.target
-EOF
-            fi
-
-            # Reload and restart
-            sudo systemctl daemon-reload
-            sudo systemctl enable notes-app
-            sudo systemctl restart notes-app
-            sudo systemctl status notes-app --no-pagername: Deploy to EC2
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            set -e
-
-            # Update system packages
-            sudo yum update -y
-
-            # Install Node.js if not installed
-            if ! command -v node > /dev/null; then
-              curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
-              sudo yum install -y nodejs
-            fi
-
-            # Install git if not installed
-            if ! command -v git > /dev/null; then
-              sudo yum install -y git
-            fi
-
-            # Navigate to or clone repo
-            if [ ! -d "/home/ec2-user/systems-evolution-lab/.git" ]; then
-              git clone https://github.com/Kun13kush/systems-evolution-lab.git /home/ec2-user/systems-evolution-lab
-            fi
-            cd /home/ec2-user/systems-evolution-lab
-            git fetch --all
-            git reset --hard origin/main
-
-            # Install Node dependencies
-            npm install
-
-            # Create systemd service if missing
-            SERVICE_FILE="/etc/systemd/system/notes-app.service"
-            if [ ! -f "$SERVICE_FILE" ]; then
-              sudo tee $SERVICE_FILE > /dev/null <<EOF
-[Unit]
-Description=Node.js Notes App
-After=network.target
-
-[Service]
-Type=simple
-User=ec2-user
-WorkingDirectory=/home/ec2-user/systems-evolution-lab
-ExecStart=/usr/bin/node /home/ec2-user/systems-evolution-lab/server.js
-Restart=always
-Environment=NODE_ENV=production
-
-[Install]
-WantedBy=multi-user.target
-EOF
-            fi
-
-            # Reload systemd and restart app
+            # 8️⃣ Reload systemd and restart app
             sudo systemctl daemon-reload
             sudo systemctl enable notes-app
             sudo systemctl restart notes-app
