@@ -1,4 +1,77 @@
-name: Deploy to EC2
+name: Deploy Node.js App to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+
+            # 1️⃣ Update system packages
+            sudo yum update -y
+
+            # 2️⃣ Install git if missing
+            if ! command -v git > /dev/null; then
+                sudo yum install -y git
+            fi
+
+            # 3️⃣ Install Node.js if missing
+            if ! command -v node > /dev/null; then
+                curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
+                sudo yum install -y nodejs
+            fi
+
+            # 4️⃣ Clone repo if missing
+            if [ ! -d "/home/ec2-user/systems-evolution-lab/.git" ]; then
+                git clone https://github.com/Kun13kush/systems-evolution-lab.git /home/ec2-user/systems-evolution-lab
+            fi
+
+            # 5️⃣ Pull latest changes
+            cd /home/ec2-user/systems-evolution-lab
+            git fetch --all
+            git reset --hard origin/main
+
+            # 6️⃣ Install Node dependencies
+            npm install
+
+            # 7️⃣ Create/update systemd service
+            SERVICE_FILE="/etc/systemd/system/notes-app.service"
+            if [ ! -f "$SERVICE_FILE" ]; then
+              sudo tee $SERVICE_FILE > /dev/null <<EOF
+[Unit]
+Description=Node.js Notes App
+After=network.target
+
+[Service]
+Type=simple
+User=ec2-user
+WorkingDirectory=/home/ec2-user/systems-evolution-lab
+ExecStart=/usr/bin/node /home/ec2-user/systems-evolution-lab/server.js
+Restart=always
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+EOF
+            fi
+
+            # 8️⃣ Reload systemd and restart service
+            sudo systemctl daemon-reload
+            sudo systemctl enable notes-app
+            sudo systemctl restart notes-app
+            sudo systemctl status notes-app --no-pagername: Deploy to EC2
 on:
   push:
     branches:
