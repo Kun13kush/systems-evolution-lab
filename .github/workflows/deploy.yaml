@@ -1,14 +1,11 @@
 name: Deploy Node.js App to EC2
-
 on:
   push:
     branches:
       - main
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -18,53 +15,47 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
-
             # 1️⃣ Update system packages
             sudo yum update -y
-
             # 2️⃣ Install git if missing
             if ! command -v git > /dev/null; then
                 sudo yum install -y git
             fi
-
             # 3️⃣ Install Node.js if missing
             if ! command -v node > /dev/null; then
                 curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
                 sudo yum install -y nodejs
             fi
-
             # 4️⃣ Clone repo if missing
-            git clone https://github.com/Kun13kush/systems-evolution-lab.git
-
+            if [ ! -d "systems-evolution-lab" ]; then
+                git clone https://github.com/Kun13kush/systems-evolution-lab.git
+            fi
             # 5️⃣ Pull latest changes
             cd systems-evolution-lab
             git fetch --all
             git reset --hard origin/main
-
             # 6️⃣ Install Node dependencies
             npm install
-
             # 7️⃣ Setup systemd service if missing
             SERVICE_FILE="/etc/systemd/system/notes-app.service"
             if [ ! -f "$SERVICE_FILE" ]; then
-              sudo tee $SERVICE_FILE > /dev/null <<EOF
-[Unit]
-Description=Node.js Notes App
-After=network.target
-
-[Service]
-Type=simple
-User=ec2-user
-WorkingDirectory=/home/ec2-user/systems-evolution-lab
-ExecStart=/usr/bin/node /home/ec2-user/systems-evolution-lab/server.js
-Restart=always
-Environment=NODE_ENV=production
-
-[Install]
-WantedBy=multi-user.target
-EOF
+              {
+                echo '[Unit]'
+                echo 'Description=Node.js Notes App'
+                echo 'After=network.target'
+                echo ''
+                echo '[Service]'
+                echo 'Type=simple'
+                echo 'User=ec2-user'
+                echo 'WorkingDirectory=/home/ec2-user/systems-evolution-lab'
+                echo 'ExecStart=/usr/bin/node /home/ec2-user/systems-evolution-lab/server.js'
+                echo 'Restart=always'
+                echo 'Environment=NODE_ENV=production'
+                echo ''
+                echo '[Install]'
+                echo 'WantedBy=multi-user.target'
+              } | sudo tee $SERVICE_FILE > /dev/null
             fi
-
             # 8️⃣ Reload systemd and restart app
             sudo systemctl daemon-reload
             sudo systemctl enable notes-app
