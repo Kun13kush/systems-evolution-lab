@@ -22,7 +22,7 @@ jobs:
             # Update system packages
             sudo yum update -y
 
-            # Install Node.js (latest LTS) if not installed
+            # Install Node.js if not installed
             if ! command -v node > /dev/null; then
               curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
               sudo yum install -y nodejs
@@ -34,7 +34,7 @@ jobs:
             fi
 
             # Navigate to or clone repo
-            if [ ! -d "/home/ec2-user/systems-evolution-lab" ]; then
+            if [ ! -d "/home/ec2-user/systems-evolution-lab/.git" ]; then
               git clone https://github.com/Kun13kush/systems-evolution-lab.git /home/ec2-user/systems-evolution-lab
             fi
             cd /home/ec2-user/systems-evolution-lab
@@ -47,7 +47,8 @@ jobs:
             # Create systemd service if missing
             SERVICE_FILE="/etc/systemd/system/notes-app.service"
             if [ ! -f "$SERVICE_FILE" ]; then
-              echo "[Unit]
+              sudo tee $SERVICE_FILE > /dev/null <<EOF
+[Unit]
 Description=Node.js Notes App
 After=network.target
 
@@ -60,7 +61,8 @@ Restart=always
 Environment=NODE_ENV=production
 
 [Install]
-WantedBy=multi-user.target" | sudo tee $SERVICE_FILE
+WantedBy=multi-user.target
+EOF
             fi
 
             # Reload systemd and restart app
