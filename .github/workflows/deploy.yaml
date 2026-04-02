@@ -37,7 +37,7 @@ jobs:
             git clone https://github.com/Kun13kush/systems-evolution-lab.git
 
             # 5️⃣ Pull latest changes
-            cd /home/ec2-user/systems-evolution-lab
+            cd systems-evolution-lab
             git fetch --all
             git reset --hard origin/main
 
